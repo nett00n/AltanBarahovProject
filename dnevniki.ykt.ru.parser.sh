@@ -23,7 +23,7 @@ if [ -f ${ParserWorkDir}/.TGChatID ];
     then
     TGChatID="$(cat ${ParserWorkDir}/.TGChatID)"
 else
-    echo "Укажи Telegram Chat ID пользователя, которому будет отправляться сообщение"
+    echo "Укажи Telegram Chat ID пользователей, которым будут отправляться сообщения"
     echo "Можешь узнать свой Chat ID, написав этому боту: http://t.me/userinfobot"
     read TGChatID
     echo $TGChatID > ${ParserWorkDir}/.TGChatID
@@ -76,7 +76,10 @@ do
             cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentParseResult | grep $CurrentPost -A 1 > ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head
             if [ $CurrentFeedIsSilent = "true" ]
                 then
-                    curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что тут новый пост: $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
+                for CurrentRecipient in $TGChatID;
+                    do
+                        curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что тут новый пост: $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
+                    done
                 fi
             fi
     done
