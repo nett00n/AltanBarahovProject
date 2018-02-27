@@ -74,7 +74,7 @@ do
     if [ ! -f ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head ];
             then
             cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentParseResult | grep $CurrentPost -A 1 > ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head
-            if [ $CurrentFeedIsSilent = "true" ]
+            if [ $CurrentFeedIsSilent = "false" ]
                 then
                 for CurrentRecipient in $TGChatID;
                     do
