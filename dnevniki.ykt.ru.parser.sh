@@ -78,13 +78,16 @@ do
                 then
                 for CurrentRecipient in $TGChatID;
                     do
-                        curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что тут новый пост: $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
+                        curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=${CurrentRecipient} -d text="Алтан говорит, что тут новый пост: $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
                     done
                 fi
             fi
     done
     if [ $CurrentFeedIsSilent = "true" ]
         then
-            curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что лента ${DnevnikiYktUserName} успешно добавилась в список отслеживаемого"
+        for CurrentRecipient in $TGChatID;
+        do
+            curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=${CurrentRecipient} -d text="Алтан говорит, что лента ${DnevnikiYktUserName} успешно добавилась в список отслеживаемого"
+        done
     fi
 done
