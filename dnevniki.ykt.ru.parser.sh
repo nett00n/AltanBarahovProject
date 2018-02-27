@@ -29,7 +29,7 @@ else
     echo $TGChatID > ${ParserWorkDir}/.TGChatID
 fi
 
-## Usernames watch list:
+### Usernames watch list:
 if [ -f ${ParserWorkDir}/.DnevnikiYktUserNames ];
     then
     DnevnikiYktUserNames=$(cat ${ParserWorkDir}/.DnevnikiYktUserNames)
@@ -39,28 +39,49 @@ else
     echo $DnevnikiYktUserNames > ${ParserWorkDir}/.DnevnikiYktUserNames
 fi
 
+### Ensure data dir exists
 if [ ! -d ${ParserWorkDir}/.data ];
         then
         mkdir ${ParserWorkDir}/.data
     fi
 
+### Cycle for all usernames
 for DnevnikiYktUserName in $DnevnikiYktUserNames;
 do
-    # check if dir for current user exists
+    ### Check if dir for current user exists
     if [ ! -d ${ParserWorkDir}/.data/${DnevnikiYktUserName} ];
         then
         mkdir ${ParserWorkDir}/.data/${DnevnikiYktUserName}
     fi
 
+    ### Check if feed is new
+    if [ -f ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentPostList ]
+        then
+        CurrentFeedIsSilent="false"
+        else
+        CurrentFeedIsSilent="true"
+    fi
+
+    ### Get Raw data. With magic
     curl -s http://dnevniki.ykt.ru/${DnevnikiYktUserName} | grep -s 'class="post-item__title-link"' -A 1 | sed 's/<a href="//g' | sed 's/\" class=\"post-item__title-link\">//g' > ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentParseResult
+
+    ### Parse every post URL:
     cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentParseResult | grep http | awk -F '/' '{print $(NF)}' > ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentPostList
+
     for CurrentPost in $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentPostList);
     do
-    
+    ### Cycle finding new posts
     if [ ! -f ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head ];
             then
             cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/.CurrentParseResult | grep $CurrentPost -A 1 > ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head
-            curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="$(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
+            if [ $CurrentFeedIsSilent = "true" ]
+                then
+                    curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что тут новый пост: $(cat ${ParserWorkDir}/.data/${DnevnikiYktUserName}/${CurrentPost}.head)"
+                fi
             fi
     done
+    if [ $CurrentFeedIsSilent = "true" ]
+        then
+            curl -s -X POST https://api.telegram.org/bot$TGToken/sendMessage -d chat_id=$TGChatID -d text="Алтан говорит, что лента ${DnevnikiYktUserName} успешно добавилась в список отслеживаемого"
+    fi
 done
